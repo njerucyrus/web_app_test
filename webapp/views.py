@@ -1,9 +1,10 @@
 from django.contrib import messages
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, logout as auth_logout
 from django.contrib.auth.models import User
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.views import View
+from django.views.generic import RedirectView
 
 
 class RegisterView(View):
@@ -72,3 +73,11 @@ class LoginView(View):
         else:
             messages.error(request, "Invalid username/password")
             return render(request, template_name=self.template_name, context={'request': request})
+
+
+class LogoutView(RedirectView):
+    url = '/login/'
+
+    def get(self, request, *args, **kwargs):
+        auth_logout(request)
+        return super(LogoutView, self).get(request, *args, **kwargs)
