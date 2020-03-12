@@ -1,3 +1,4 @@
+from django.contrib.auth.models import User
 from django.db import models
 
 
@@ -18,6 +19,7 @@ class ScholarshipApplication(models.Model):
         ('approved', 'approved'),
         ('rejected', 'rejected')
     )
+    auth_user = models.ForeignKey(User, on_delete=models.CASCADE)
     student_name = models.CharField(max_length=64, null=False, blank=False)
     address = models.CharField(max_length=140, null=False, blank=False)
     phone_number = models.CharField(max_length=20, null=False, blank=False)
