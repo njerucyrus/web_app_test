@@ -7,9 +7,9 @@ class ScholarshipApplicationForm(ModelForm):
     class Meta:
         model = ScholarshipApplication
         fields = [
-            'auth_user',
             'student_name',
             'address',
+            'email',
             'phone_number',
             'birth_certificate',
             'id_no',
@@ -20,3 +20,5 @@ class ScholarshipApplicationForm(ModelForm):
             'recommendation_letter'
 
         ]
+
+

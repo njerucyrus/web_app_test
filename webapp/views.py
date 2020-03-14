@@ -2,10 +2,11 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout as auth_logout
 from django.contrib.auth.models import User
 from django.http import HttpResponseRedirect
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from django.views import View
-from django.views.generic import RedirectView
+from django.views.generic import RedirectView, TemplateView
 
+from webapp.custom_signals import application_modified
 from webapp.forms import ScholarshipApplicationForm
 from webapp.models import ScholarshipApplication
 
@@ -93,12 +94,10 @@ class ScholarshipApplicationView(View):
         return render(request, template_name=self.template_name, context={'request': request})
 
     def post(self, request, *args, **kwargs):
-        data = request.POST
-        files = request.FILES
 
         # Check if the user has already applied
         user = request.user
-        record_exists = ScholarshipApplication.objects.filter(auth_user__username=user.username).exists()
+        record_exists = ScholarshipApplication.objects.filter(email=request.POST.get('email')).exists()
         if record_exists:
             messages.error(request, 'You have already applied')
             return HttpResponseRedirect('/')
@@ -106,14 +105,48 @@ class ScholarshipApplicationView(View):
         # perform simple data validation
         else:
             form = ScholarshipApplicationForm(request.POST, request.FILES)
-            form.save(commit=False)
-            form.auth_user = request.user
             if form.is_valid():
                 form.save()
-
+                messages.success(request, "Application Submitted successfully. "
+                                          "You will be notified via email when the application is approved.")
+                return HttpResponseRedirect('/')
+            else:
+                print(form.errors)
+                messages.error(request, "Form data invalid. please check you form and submit again ")
                 return HttpResponseRedirect('/')
 
 
+class HomePageView(TemplateView):
+    template_name = 'index.html'
+
+    def get(self, request, *args, **kwargs):
+        return render(request, template_name=self.template_name, context={'request': request})
 
 
+class ListAllApplicationView(TemplateView):
+    template_name = 'applications.html'
 
+    def get(self, request, *args, **kwargs):
+        applications = ScholarshipApplication.objects.all()
+
+        return render(request, template_name=self.template_name,
+                      context={'request': request, 'applications': applications})
+
+
+class ManageApplicationView(View):
+    template_name = 'applications.html'
+    def post(self, request, *args, **kwargs):
+        application_id = kwargs.get('pk', None)
+        application = get_object_or_404(ScholarshipApplication, id=application_id)
+
+        operation = request.POST.get('operation')
+
+        if operation == 'approve':
+            application.application_status = 'approved'
+        if operation == 'reject':
+            application.application_status = 'rejected'
+
+        application.save()
+        messages.success(request, 'Application updated successfully')
+        application_modified.send(sender=self.__class__, application=application)
+        return render(request, template_name=self.template_name, context={'request': request})
