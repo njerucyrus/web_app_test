@@ -22,6 +22,7 @@ class ScholarshipApplication(models.Model):
     auth_user = models.ForeignKey(User, on_delete=models.CASCADE)
     student_name = models.CharField(max_length=64, null=False, blank=False)
     address = models.CharField(max_length=140, null=False, blank=False)
+    email = models.EmailField()
     phone_number = models.CharField(max_length=20, null=False, blank=False)
     birth_certificate = models.FileField(upload_to='attachments/certs/')
     id_no = models.FileField(upload_to='attachments/ids/')

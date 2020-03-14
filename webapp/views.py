@@ -6,6 +6,9 @@ from django.shortcuts import render
 from django.views import View
 from django.views.generic import RedirectView
 
+from webapp.forms import ScholarshipApplicationForm
+from webapp.models import ScholarshipApplication
+
 
 class RegisterView(View):
     template_name = 'register.html'
@@ -81,3 +84,36 @@ class LogoutView(RedirectView):
     def get(self, request, *args, **kwargs):
         auth_logout(request)
         return super(LogoutView, self).get(request, *args, **kwargs)
+
+
+class ScholarshipApplicationView(View):
+    template_name = 'apply.html'
+
+    def get(self, request, *args, **kwargs):
+        return render(request, template_name=self.template_name, context={'request': request})
+
+    def post(self, request, *args, **kwargs):
+        data = request.POST
+        files = request.FILES
+
+        # Check if the user has already applied
+        user = request.user
+        record_exists = ScholarshipApplication.objects.filter(auth_user__username=user.username).exists()
+        if record_exists:
+            messages.error(request, 'You have already applied')
+            return HttpResponseRedirect('/')
+
+        # perform simple data validation
+        else:
+            form = ScholarshipApplicationForm(request.POST, request.FILES)
+            form.save(commit=False)
+            form.auth_user = request.user
+            if form.is_valid():
+                form.save()
+
+                return HttpResponseRedirect('/')
+
+
+
+
+
