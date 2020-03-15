@@ -1,0 +1,26 @@
+<div class="row">
+
+    {% if messages %}
+        <div>
+            <ul class="list-group" style="list-style: none; margin: 4px;">
+                {% for message in messages %}
+                    <li class="alert alert-{{ message.tags }} alert-dismissible" role="alert">
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span
+                                aria-hidden="true">&times;</span></button>
+                        {{ message }}
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+
+    {% endif %}
+
+
+    <!-- ./col -->
+    <div class="col-lg-3 col-xs-6">
+        <!-- small box -->
+
+    </div>
+    <!-- ./col -->
+</div>
+

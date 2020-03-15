@@ -1,0 +1,49 @@
+{% load staticfiles %}
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- my local css and bootstrap -->
+    <link href="{% static 'css/bootstrap.min.css' %} " rel="stylesheet">
+    <!--font awesome -->
+        <link href="{% static 'font-awesome-4.7.0/css/font-awesome.min.css' %} " rel="stylesheet">
+    <!-- sidebar-->
+{#    <link href="{% static 'css/sidebar.css' %}" rel="stylesheet">#}
+
+
+    <!--jquery-ui css -->
+    <link href="{% static 'css/jquery-ui/jquery-ui.min.css' %}" rel="stylesheet">
+    <link href="{% static 'css/jquery-ui/jquery-ui.structure.min.css' %}" rel="stylesheet">
+    <link href="{% static 'css/jquery-ui/jquery-ui.theme.css' %}" rel="stylesheet">
+    <style type="text/css">
+        .avartar {
+            height: 150px;
+            width: 150px;
+            border-radius: 50%;
+            -webkit-border-radius: 50%;
+            -moz-border-radius: 50%;
+            text-align: center;
+        }
+        /* make sidebar nav vertical */
+        @media (min-width: 768px) {
+          .sidebar-nav .navbar .navbar-collapse {
+            padding: 0;
+            max-height: none;
+          }
+          .sidebar-nav .navbar ul {
+            float: none;
+            display: block;
+          }
+          .sidebar-nav .navbar li {
+            float: none;
+            display: block;
+          }
+          .sidebar-nav .navbar li a {
+            padding-top: 12px;
+            padding-bottom: 12px;
+          }
+        }
+
+
+    </style>
+</head>

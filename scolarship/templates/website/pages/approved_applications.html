@@ -1,0 +1,117 @@
+{% extends 'website/base.html' %}
+{% load static %}
+
+{% block content_header %}
+    <h1>
+        Dashboard
+        <small>Approved Applications</small>
+    </h1>
+{% endblock %}
+
+{% block content %}
+    <style>
+        #example1_filter {
+            text-align: right;
+        }
+    </style>
+
+    <div class="box">
+        <div class="box-header">
+            <h3 class="box-title">Approved Applications</h3>
+            {% if messages %}
+                <div>
+                    <ul class="list-group" style="list-style: none; margin: 4px;">
+                        {% for message in messages %}
+                            <li class="alert alert-{{ message.tags }} alert-dismissible" role="alert">
+                                <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span
+                                        aria-hidden="true">&times;</span></button>
+                                {{ message }}
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+
+            {% endif %}
+        </div>
+        <!-- /.box-header -->
+        <div class="box-body">
+            <div class="table-responsive">
+                <table id="example1" class="table table-bordered table-striped">
+                    <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Applicant Name</th>
+                        <th>Address</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>Birth Cert</th>
+                        <td>Id No</td>
+                        <td>School</td>
+                        <td>School Address</td>
+                        <td>Academic Level</td>
+                        <td>Year Of Completion</td>
+                        <td>Action</td>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for item in applications %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td>{{ item.student_name }}</td>
+                            <td>{{ item.address }}</td>
+                            <td>{{ item.email }}</td>
+                            <td>{{ item.phone_number }}</td>
+                            <td><a href="{{ item.birth_certificate }}">Open Cert</a></td>
+                            <td><a href="{{ item.id_no }}">Open ID</a></td>
+                            <td>{{ item.school_name }} </td>
+                            <td>{{ item.school_address }} </td>
+                            <td>{{ item.academic_level }} </td>
+                            <td>{{ item.year }} </td>
+
+
+                            <td colspan="2">
+                                {% if item.application_status == 'pending' %}
+                                    <form method="post" action="{% url 'webapp:manage_applications' %}">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="id" value="{{ item.id }}"/>
+
+                                        <input type="hidden" name="operation" value="approve"/>
+                                        <button type="submit" id="btn_approve" class="btn btn-xs btn-primary">
+                                            Approve
+                                        </button>
+                                    </form>
+
+                                    <form method="post" action="{% url 'webapp:manage_applications' %}">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="id" value="{{ item.id }}"/>
+                                        <input type="hidden" name="operation" value="reject"/>
+                                        <br/>
+                                        <button id="btn_approve" type="submit" class="btn btn-xs btn-danger">Reject
+                                        </button>
+                                    </form>
+                                {% endif %}
+
+                            </td>
+                        </tr>
+
+                    {% endfor %}
+                    <tbody>
+                </table>
+            </div>
+        </div>
+        <!-- /.box-body -->
+    </div>
+
+
+{% endblock %}
+
+{% block extra_js %}
+
+    <!-- DataTables -->
+    <script src="{% static  'bower_components/datatables.net/js/jquery.dataTables.min.js' %}"></script>
+    <script src="{% static 'bower_components/datatables.net-bs/js/dataTables.bootstrap.min.js' %}"></script>
+    <!-- SlimScroll -->
+    <script src="{% static 'bower_components/jquery-slimscroll/jquery.slimscroll.min.js' %}"></script>
+
+
+{% endblock %}

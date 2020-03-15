@@ -16,6 +16,7 @@ class ScholarshipApplicationForm(ModelForm):
             'school_name',
             'school_address',
             'academic_level',
+            'year',
             'recommendation_reason',
             'recommendation_letter'
 

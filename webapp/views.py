@@ -1,18 +1,20 @@
 from django.contrib import messages
-from django.contrib.auth import authenticate, login, logout as auth_logout
+from django.contrib.auth import authenticate, login, logout as auth_logout, update_session_auth_hash
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth.models import User
 from django.http import HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404
+from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.generic import RedirectView, TemplateView
 
-from webapp.custom_signals import application_modified
 from webapp.forms import ScholarshipApplicationForm
 from webapp.models import ScholarshipApplication
 
 
 class RegisterView(View):
-    template_name = 'register.html'
+    template_name = 'website/pages/register.html'
 
     def get(self, request, *args, **kwargs):
         return render(request, template_name=self.template_name, context={'request': request})
@@ -35,13 +37,31 @@ class RegisterView(View):
             )
             user.set_password(password)
             user.save()
-            redirect_route = '/login/'
+            login(request, user)
+            redirect_route = '/'
             messages.success(request, 'Account created successfully. Login to proceed')
             return HttpResponseRedirect(redirect_to=redirect_route)
 
 
+def change_password(request):
+    if request.method == 'POST':
+        form = PasswordChangeForm(request.user, request.POST)
+        if form.is_valid():
+            user = form.save()
+            update_session_auth_hash(request, user)  # Important!
+            messages.success(request, 'Your password was successfully updated!')
+            return HttpResponseRedirect('/')
+        else:
+            messages.error(request, 'Please correct the error below.')
+    else:
+        form = PasswordChangeForm(request.user)
+    return render(request, 'registration/change_password.html', {
+        'form': form
+    })
+
+
 class LoginView(View):
-    template_name = 'login.html'
+    template_name = 'website/pages/login.html'
 
     def get(self, request, *args, **kwargs):
         next_url = request.GET.get('next', '').strip()
@@ -83,12 +103,17 @@ class LogoutView(RedirectView):
     url = '/login/'
 
     def get(self, request, *args, **kwargs):
+        messages.info(request, "You are now logged out login again to access the website")
         auth_logout(request)
         return super(LogoutView, self).get(request, *args, **kwargs)
 
 
 class ScholarshipApplicationView(View):
-    template_name = 'apply.html'
+    template_name = 'website/pages/apply_page.html'
+
+    @method_decorator(login_required(login_url='/login/'))
+    def dispatch(self, request, *args, **kwargs):
+        return super(ScholarshipApplicationView, self).dispatch(request, *args, **kwargs)
 
     def get(self, request, *args, **kwargs):
         return render(request, template_name=self.template_name, context={'request': request})
@@ -117,14 +142,18 @@ class ScholarshipApplicationView(View):
 
 
 class HomePageView(TemplateView):
-    template_name = 'index.html'
+    template_name = 'homepage.html'
 
     def get(self, request, *args, **kwargs):
         return render(request, template_name=self.template_name, context={'request': request})
 
 
 class ListAllApplicationView(TemplateView):
-    template_name = 'applications.html'
+    template_name = 'website/pages/applications.html'
+
+    @method_decorator(login_required)
+    def dispatch(self, request, *args, **kwargs):
+        return super(ListAllApplicationView, self).dispatch(request, *args, **kwargs)
 
     def get(self, request, *args, **kwargs):
         applications = ScholarshipApplication.objects.all()
@@ -134,9 +163,14 @@ class ListAllApplicationView(TemplateView):
 
 
 class ManageApplicationView(View):
-    template_name = 'applications.html'
+    template_name = 'website/pages/applications.html'
+
+    @method_decorator(login_required)
+    def dispatch(self, request, *args, **kwargs):
+        return super(ManageApplicationView, self).dispatch(request, *args, **kwargs)
+
     def post(self, request, *args, **kwargs):
-        application_id = kwargs.get('pk', None)
+        application_id = request.POST.get('id')
         application = get_object_or_404(ScholarshipApplication, id=application_id)
 
         operation = request.POST.get('operation')
@@ -148,5 +182,25 @@ class ManageApplicationView(View):
 
         application.save()
         messages.success(request, 'Application updated successfully')
-        application_modified.send(sender=self.__class__, application=application)
         return render(request, template_name=self.template_name, context={'request': request})
+
+
+class AdminDashboard(TemplateView):
+    template_name = 'website/pages/index.html'
+
+    def get(self, request, *args, **kwargs):
+        return render(request, template_name=self.template_name, context={'request': request})
+
+
+class ApprovedApplications(TemplateView):
+    template_name = 'website/pages/approved_applications.html'
+
+    @method_decorator(login_required)
+    def dispatch(self, request, *args, **kwargs):
+        return super(ApprovedApplications, self).dispatch(request, *args, **kwargs)
+
+    def get(self, request, *args, **kwargs):
+        applications = ScholarshipApplication.objects.filter(application_status='approved')
+
+        return render(request, template_name=self.template_name,
+                      context={'request': request, 'applications': applications})
