@@ -25,7 +25,7 @@ django-ipware==2.1.0
 django-rest-auth==0.9.5
 django-session-timeout==0.0.4
 django-storages==1.7.1
-djangorestframework==3.9.4
+djangorestframework==3.11.2
 djangorestframework-api-key==0.3.1
 djangorestframework-jwt==1.11.0
 djangorestframework-simplejwt==4.3.0
